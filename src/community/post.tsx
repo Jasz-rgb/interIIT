@@ -13,6 +13,12 @@ import {
 } from "react-icons/io5";
 import { BsChat } from "react-icons/bs";
 import { AiOutlineDelete } from "react-icons/ai";
+import {
+  getCommentCount,
+  getInitialLikes,
+  toggleLike,
+  confirmDelete,
+} from "./postActions";
 
 const usersMap = Object.fromEntries(usersData.map((u) => [u.id, u]));
 
@@ -44,7 +50,11 @@ const Post: React.FC<PostProps> = ({ currentUserId }) => {
     "upvotes" | "replies" | "newest" | "oldest" | "userPopularity"
   >("newest");
 
-  // Load comments from localStorage or fallback to JSON
+  // Likes state
+  const [likes, setLikes] = useState(() => getInitialLikes(postId));
+  const [liked, setLiked] = useState(false);
+
+  // Load comments
   useEffect(() => {
     const savedComments = localStorage.getItem("comments_" + postId);
     if (savedComments) {
@@ -140,12 +150,43 @@ const Post: React.FC<PostProps> = ({ currentUserId }) => {
     visibleComments
   );
 
+  const actionButtons = [
+    {
+      icon: BsChat,
+      label: `Comment (${getCommentCount(comments)})`,
+      onClick: () =>
+        document
+          .getElementById("comment-input")
+          ?.scrollIntoView({ behavior: "smooth" }),
+    },
+    {
+      icon: IoArrowUpCircleOutline,
+      label: `Like (${likes})`,
+      onClick: () => {
+        const newLikes = toggleLike(postId, likes, liked);
+        setLikes(newLikes);
+        setLiked(!liked);
+      },
+    },
+    { icon: IoArrowRedoOutline, label: "Share" },
+    { icon: IoBookmarkOutline, label: "Save" },
+    {
+      icon: AiOutlineDelete,
+      label: "Delete",
+      color: "red.500",
+      onClick: () => {
+        if (confirmDelete()) {
+          alert("Post deleted!");
+          // complete this parttttt
+        }
+      },
+    },
+  ];
+
   return (
     <Box maxW="600px" mx="auto" mt={5}>
-      {/* Header */}
       <PostHeader />
 
-      {/* Post content */}
       <Box
         bg="white"
         p={4}
@@ -158,8 +199,18 @@ const Post: React.FC<PostProps> = ({ currentUserId }) => {
           Framework for Students to Create Conceptual Research Models
         </Text>
         <Text mt={3} mb={4}>
-          A step-by-step visual guide to creating a conceptual framework for
-          research...
+          This post presents a Conceptual Framework Development Diagram that
+          outlines the 4 steps required to create the conceptual framework for a
+          research study. The process begins with Step 1: Choose your topic,
+          advising researchers to find a subject within their field of
+          specialization. Next is Step 2: Do a literature review, which involves
+          reviewing relevant, updated, published, and peer-reviewed research.
+          This review directly informs Step 3: Isolate the important variables,
+          requiring the researcher to identify the relevant variables based on
+          the research topic and literature. The final stage is Step 4: Generate
+          the conceptual framework, which instructs the researcher to use the
+          identified variables to construct the framework as a diagram that
+          reflects a logical "what if, then what" statement or paradigm.
         </Text>
         <Image
           src="/images/sample-image.png"
@@ -168,22 +219,8 @@ const Post: React.FC<PostProps> = ({ currentUserId }) => {
           mb={4}
         />
 
-        {/* Action Buttons */}
         <Flex ml={1} mb={3} color="gray.500" fontWeight={600}>
-          {[
-            {
-              icon: BsChat,
-              label: "Comment",
-              onClick: () =>
-                document
-                  .getElementById("comment-input")
-                  ?.scrollIntoView({ behavior: "smooth" }),
-            },
-            { icon: IoArrowRedoOutline, label: "Share" },
-            { icon: IoArrowUpCircleOutline, label: "Like" },
-            { icon: IoBookmarkOutline, label: "Save" },
-            { icon: AiOutlineDelete, label: "Delete", color: "red.500" },
-          ].map((btn, idx) => (
+          {actionButtons.map((btn, idx) => (
             <Flex
               key={idx}
               align="center"
@@ -243,7 +280,6 @@ const Post: React.FC<PostProps> = ({ currentUserId }) => {
           </Flex>
         </Box>
 
-        {/* Comments */}
         {visibleTopComments.map((c) => (
           <CommentItem
             key={c.id}
