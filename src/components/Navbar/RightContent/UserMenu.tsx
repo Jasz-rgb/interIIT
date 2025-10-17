@@ -11,7 +11,7 @@ import {
 } from "@chakra-ui/react";
 import { User } from "firebase/auth";
 import { signOut } from "firebase/auth";
-import { auth } from "../../../firebase/clientApp"; // Adjust path as needed
+import { auth } from "../../../firebase/clientApp";
 import React from "react";
 
 type UserMenuProps = {

@@ -17,7 +17,7 @@ const PostPage: React.FC = () => {
     const newPost: Post = {
       title,
       content,
-      author: "user123", // you can replace with auth user later
+      author: "user123",
     };
     setPosts((prev) => [newPost, ...prev]);
     setTitle("");
