@@ -1,21 +1,54 @@
 import { ChevronDownIcon } from "@chakra-ui/icons";
-import { Menu, MenuButton, Button, MenuList, MenuItem } from "@chakra-ui/react";
+import {
+  Menu,
+  MenuButton,
+  Button,
+  MenuList,
+  MenuItem,
+  Avatar,
+  Flex,
+  Text,
+} from "@chakra-ui/react";
+import { User } from "firebase/auth";
+import { signOut } from "firebase/auth";
+import { auth } from "../../../firebase/clientApp"; // Adjust path as needed
 import React from "react";
 
-type UserMenuProps = {};
+type UserMenuProps = {
+  user?: User | null;
+};
 
-const UserMenu: React.FC<UserMenuProps> = () => {
+const UserMenu: React.FC<UserMenuProps> = ({ user }) => {
+  if (!user) {
+    // Logged out
+    return (
+      <Avatar
+        size="sm"
+        name="Unknown User"
+        src="/images/unknown.png"
+        cursor="pointer"
+      />
+    );
+  }
+
+  // Logged in
   return (
     <Menu>
-      <MenuButton as={Button} rightIcon={<ChevronDownIcon />}>
-        Actions
+      <MenuButton as={Button} rightIcon={<ChevronDownIcon />} variant="outline">
+        <Flex align="center" gap={2}>
+          <Avatar size="sm" src={user.photoURL || ""} />
+          <Text fontSize="sm">{user.displayName || "User"}</Text>
+        </Flex>
       </MenuButton>
       <MenuList>
-        <MenuItem>Download</MenuItem>
-        <MenuItem>Create a Copy</MenuItem>
-        <MenuItem>Mark as Draft</MenuItem>
-        <MenuItem>Delete</MenuItem>
-        <MenuItem>Attend a Workshop</MenuItem>
+        <MenuItem>Profile</MenuItem>
+        <MenuItem
+          onClick={() => {
+            signOut(auth);
+          }}
+        >
+          Log Out
+        </MenuItem>
       </MenuList>
     </Menu>
   );
