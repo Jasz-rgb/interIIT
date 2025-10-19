@@ -9,7 +9,6 @@ import { FIREBASE_ERRORS } from "@/firebase/errors";
 const Login: React.FC = () => {
   const [modalState, setAuthModalState] = useRecoilState(authModalState);
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
-
   const [signInWithEmailAndPassword, user, loading, error] =
     useSignInWithEmailAndPassword(auth);
 
@@ -28,10 +27,12 @@ const Login: React.FC = () => {
   };
 
   useEffect(() => {
-    if (user?.user?.email) {
-      const username = getUsernameForEmail(user.user.email);
+    if (user?.user) {
+      const { email, uid } = user.user;
+      const username = getUsernameForEmail(email || "");
       localStorage.setItem("currentUsername", username);
-      localStorage.setItem("currentUserEmail", user.user.email);
+      localStorage.setItem("currentUserEmail", email || "");
+      localStorage.setItem("currentUserId", uid);
     }
   }, [user]);
 

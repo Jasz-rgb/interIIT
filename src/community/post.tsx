@@ -1,3 +1,4 @@
+"use client";
 import React, { useEffect, useState } from "react";
 import { Box, Text, Image, Flex, Input, Button, Icon } from "@chakra-ui/react";
 import { useRecoilState } from "recoil";
@@ -13,12 +14,7 @@ import {
 } from "react-icons/io5";
 import { BsChat } from "react-icons/bs";
 import { AiOutlineDelete } from "react-icons/ai";
-import {
-  getCommentCount,
-  getInitialLikes,
-  toggleLike,
-  confirmDelete,
-} from "./postActions";
+import { getCommentCount, toggleLike, confirmDelete } from "./postActions";
 
 const usersMap = Object.fromEntries(usersData.map((u) => [u.id, u]));
 
@@ -49,13 +45,23 @@ const Post: React.FC<PostProps> = ({ currentUserId }) => {
   const [sortBy, setSortBy] = useState<
     "upvotes" | "replies" | "newest" | "oldest" | "userPopularity"
   >("newest");
-
-  // Likes state
-  const [likes, setLikes] = useState(() => getInitialLikes(postId));
+  const [likes, setLikes] = useState(0);
   const [liked, setLiked] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
-  // Load comments
   useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("likes_" + postId);
+      const initialLikes = stored
+        ? parseInt(stored)
+        : Math.floor(Math.random() * 100);
+      setLikes(initialLikes);
+      setHydrated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     const savedComments = localStorage.getItem("comments_" + postId);
     if (savedComments) {
       setComments(JSON.parse(savedComments));
@@ -72,7 +78,7 @@ const Post: React.FC<PostProps> = ({ currentUserId }) => {
   }, [setComments]);
 
   useEffect(() => {
-    if (comments.length > 0) {
+    if (comments.length > 0 && typeof window !== "undefined") {
       localStorage.setItem("comments_" + postId, JSON.stringify(comments));
     }
   }, [comments]);
@@ -125,10 +131,8 @@ const Post: React.FC<PostProps> = ({ currentUserId }) => {
 
   const handleAddComment = (parentId: number | null, text: string) => {
     if (!text.trim()) return;
-
-    const usernames = JSON.parse(localStorage.getItem("usernames") || "{}");
-    const username = usernames[currentUserId] || "You";
-
+    const storedUsername =
+      localStorage.getItem("currentUsername") || currentUserId;
     const newComment: Comment = {
       id: Date.now(),
       parent_id: parentId,
@@ -136,11 +140,10 @@ const Post: React.FC<PostProps> = ({ currentUserId }) => {
       upvotes: 0,
       created_at: new Date().toISOString(),
       user_id: currentUserId,
-      name: username,
+      name: storedUsername,
       avatar: "",
       children: [],
     };
-
     setComments((prev) => [...prev, newComment]);
     setCommentInputs((prev) => ({ ...prev, [parentId || 0]: "" }));
   };
@@ -175,18 +178,16 @@ const Post: React.FC<PostProps> = ({ currentUserId }) => {
       label: "Delete",
       color: "red.500",
       onClick: () => {
-        if (confirmDelete()) {
-          alert("Post deleted!");
-          // complete this parttttt
-        }
+        if (confirmDelete()) alert("Post deleted!");
       },
     },
   ];
 
+  if (!hydrated) return null;
+
   return (
     <Box maxW="600px" mx="auto" mt={5}>
       <PostHeader />
-
       <Box
         bg="white"
         p={4}
@@ -201,16 +202,7 @@ const Post: React.FC<PostProps> = ({ currentUserId }) => {
         <Text mt={3} mb={4}>
           This post presents a Conceptual Framework Development Diagram that
           outlines the 4 steps required to create the conceptual framework for a
-          research study. The process begins with Step 1: Choose your topic,
-          advising researchers to find a subject within their field of
-          specialization. Next is Step 2: Do a literature review, which involves
-          reviewing relevant, updated, published, and peer-reviewed research.
-          This review directly informs Step 3: Isolate the important variables,
-          requiring the researcher to identify the relevant variables based on
-          the research topic and literature. The final stage is Step 4: Generate
-          the conceptual framework, which instructs the researcher to use the
-          identified variables to construct the framework as a diagram that
-          reflects a logical "what if, then what" statement or paradigm.
+          research study...
         </Text>
         <Image
           src="/images/sample-image.png"
@@ -239,7 +231,6 @@ const Post: React.FC<PostProps> = ({ currentUserId }) => {
           ))}
         </Flex>
 
-        {/* Comment Input + Sort */}
         <Box mb={4} id="comment-input">
           <Flex align="center" gap={2} mb={2}>
             <Input
@@ -256,7 +247,6 @@ const Post: React.FC<PostProps> = ({ currentUserId }) => {
               Comment
             </Button>
           </Flex>
-
           <Flex align="center" mb={2}>
             <Text mr={2} fontSize="11pt" fontWeight="bold">
               Sort Comments:

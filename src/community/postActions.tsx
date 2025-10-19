@@ -1,4 +1,4 @@
-import { Comment } from "./Post";
+// import { Comment } from "./post";
 
 export const getCommentCount = (comments: Comment[]) => {
   return comments.length;

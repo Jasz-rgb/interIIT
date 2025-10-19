@@ -8,9 +8,7 @@ interface CommentItemProps {
   level: number;
   handleAddComment: (parentId: number | null, text: string) => void;
   commentInputs: { [key: number]: string };
-  setCommentInputs: React.Dispatch<
-    React.SetStateAction<{ [key: number]: string }>
-  >;
+  setCommentInputs: React.Dispatch<React.SetStateAction<{ [key: number]: string }>>;
   currentUserEmail: string;
 }
 
@@ -20,17 +18,13 @@ const CommentItem: React.FC<CommentItemProps> = ({
   handleAddComment,
   commentInputs,
   setCommentInputs,
-  currentUserEmail}) => {
+  currentUserEmail,
+}) => {
   const [expanded, setExpanded] = useState(false);
   const replies = comment.children || [];
   const visibleReplies = expanded ? replies : replies.slice(0, 2);
 
-  // Get the username and avatar for this comment's email/user_id
-  const usernames = JSON.parse(localStorage.getItem("usernames") || "{}");
-  const commentUserName =
-    comment.user_id === currentUserEmail
-      ? "You"
-      : usernames[comment.user_id] || comment.name || "Unknown User";
+  const commentUserName = comment.name;
   const commentUserAvatar = comment.avatar || "";
 
   return (
@@ -67,10 +61,7 @@ const CommentItem: React.FC<CommentItemProps> = ({
           size="sm"
           value={commentInputs[comment.id] || ""}
           onChange={(e) =>
-            setCommentInputs({
-              ...commentInputs,
-              [comment.id]: e.target.value,
-            })
+            setCommentInputs({ ...commentInputs, [comment.id]: e.target.value })
           }
         />
         <Button
